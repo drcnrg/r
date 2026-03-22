@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en" class="light dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResumePro - HD Builder</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        heading: ['"Space Grotesk"', 'sans-serif'],
+                        body: ['"Inter"', 'sans-serif'],
+                    },
+                    colors: {
+                        neo: {
+                            pink: '#d946ef',     /* Vibrant HD Pink */
+                            purple: '#8b5cf6',   /* Deep HD Purple */
+                            blue: '#0ea5e9',     /* Clean HD Blue */
+                            dark: '#0f172a',     /* Slate Dark */
+                            darker: '#020617',   /* Deep Background */
+                            light: '#f8fafc',    /* Crisp White/Gray */
+                            accent: '#facc15'    /* Warning/Action Yellow */
+                        }
+                    },
+                    boxShadow: {
+                        'neo-light': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'neo-dark': '4px 4px 0px 0px rgba(217,70,239,0.8)', /* Pink glow shadow in dark mode */
+                        'neo-focus-light': '0 0 0 4px rgba(139, 92, 246, 0.3)',
+                        'neo-focus-dark': '0 0 0 4px rgba(217, 70, 239, 0.4)',
+                    }
+                }
+            }
+        }
+    </script>
+
+<style>
+    /* ========================================================
+       GLOBAL UI STYLES (HD NEOBRUTALISM)
+       ======================================================== */
+    :root {
+        --border-radius: 8px;
+        --border-width: 3px;
+        --transition-speed: 0.2s;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: theme('colors.neo.light');
+        color: theme('colors.neo.dark');
+        transition: background-color var(--transition-speed), color var(--transition-speed);
+        overflow: hidden; /* Prevent body scroll, handle scroll internally */
+    }
+    
+    .dark body {
+        background-color: theme('colors.neo.darker');
+        color: theme('colors.neo.light');
+    }
+
+    /* The Main Container Card */
+    .wizard-card {
+        background-color: white;
+        border: var(--border-width) solid black;
+        border-radius: var(--border-radius);
+        box-shadow: theme('boxShadow.neo-light');
+        display: flex;
+        flex-direction: column;
+        max-height: 90vh; /* Leave room for header/footer */
+        overflow: hidden; /* Contains the internal scrolling */
+        transition: all var(--transition-speed);
+    }
+
+    .dark .wizard-card {
+        background-color: theme('colors.neo.dark');
+        border-color: theme('colors.neo.pink');
+        box-shadow: theme('boxShadow.neo-dark');
+    }
+
+    /* Scrollable Content Area - FIX FOR OVERLAPPING BUTTONS */
+    .wizard-content {
+        background-color: rgb(207, 135, 0);
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 2rem;
+        /* Smooth scrolling */
+        scroll-behavior: smooth;
+    }
+
+    /* Custom Scrollbar for HD look */
+    .wizard-content::-webkit-scrollbar { width: 10px; }
+    .wizard-content::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 10px; }
+    .wizard-content::-webkit-scrollbar-thumb { background: theme('colors.neo.purple'); border-radius: 10px; border: 2px solid white; }
+    .dark .wizard-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+    .dark .wizard-content::-webkit-scrollbar-thumb { background: theme('colors.neo.pink'); border: 2px solid theme('colors.neo.dark'); }
+
+    /* Fixed Footer for Buttons */
+    .wizard-footer {
+        flex-shrink: 0;
+        padding: 1.5rem 2rem;
+        background-color: rgb(91, 2, 160);
+        border-top: var(--border-width) solid black;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 10;
+    }
+
+    .dark .wizard-footer {
+        background-color: theme('colors.neo.dark');
+        border-color: theme('colors.neo.pink');
+    }
+
+    /* HD Form Inputs */
+    .neo-label {
+        display: block;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
+        color: theme('colors.gray.700');
+    }
+    .dark .neo-label { color: theme('colors.gray.300'); }
+
+    .neo-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: var(--border-width) solid black;
+        border-radius: var(--border-radius);
+        background: white;
+        color: black;
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all var(--transition-speed);
+    }
+    
+    .dark .neo-input { 
+        background: theme('colors.slate.800'); 
+        color: rgb(157, 31, 246); 
+        border-color: theme('colors.slate.600'); 
+    }
+
+    .neo-input:focus {
+        outline: none;
+        border-color: theme('colors.neo.purple');
+        box-shadow: theme('boxShadow.neo-focus-light');
+    }
+    
+    .dark .neo-input:focus {
+        border-color: theme('colors.neo.pink');
+        box-shadow: theme('boxShadow.neo-focus-dark');
+    }
+
+    /* HD Buttons */
+    .neo-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border: var(--border-width) solid black;
+        border-radius: var(--border-radius);
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        transition: all 0.1s ease;
+        box-shadow: 3px 3px 0px 0px rgba(0,0,0,1);
+    }
+    
+    .dark .neo-btn { border-color: white; box-shadow: 3px 3px 0px 0px rgba(255,255,255,1); }
+
+    .neo-btn:active {
+        transform: translate(3px, 3px);
+        box-shadow: 0px 0px 0px 0px rgba(0,0,0,1);
+    }
+    
+    .dark .neo-btn:active { box-shadow: 0px 0px 0px 0px rgba(255,255,255,1); }
+
+    /* Specific Button Colors */
+    .btn-primary { background-color: theme('colors.neo.purple'); color: black; }
+    .btn-secondary { background-color: theme('colors.gray.200'); color: black; }
+    .btn-success { background-color: theme('colors.neo.pink'); color: white; border-color: black; }
+    .btn-danger { background-color: theme('colors.red.500'); color: white; }
+    
+    .dark .btn-primary { background-color: theme('colors.neo.pink'); color: rgb(255, 255, 255); border-color: white; }
+    .dark .btn-secondary { background-color: theme('colors.slate.700'); color: white; border-color: white; }
+
+    /* Step Containers */
+    .step-container {
+        display: none;
+        animation: fadeIn 0.4s ease-out forwards;
+    }
+    .step-container.active { display: block; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Item Cards (For Experience, Education, etc.) */
+    .item-card {
+        border: 2px solid theme('colors.gray.300');
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        background: theme('colors.gray.50');
+    }
+    .dark .item-card {
+        border-color: theme('colors.slate.600');
+        background: theme('colors.slate.800/50');
+    }
+
+    .remove-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        color: theme('colors.red.500');
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: transform 0.2s;
+    }
+    .remove-btn:hover { transform: scale(1.1); color: theme('colors.red.700'); }
+
+    /* ========================================================
+       RESUME PREVIEW WRAPPER (UI)
+       ======================================================== */
+    #preview-wrapper {
+        width: 100%;
+        background: #e5e7eb;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        border: var(--border-width) solid black;
+        display: flex;
+        justify-content: center;
+        overflow-x: auto;
+    }
+    .dark #preview-wrapper { background: #1e293b; border-color: theme('colors.neo.pink'); }
+
+    /* Scaling the A4 page down for UI viewing */
+    .resume-scaler {
+        transform: scale(0.6);
+        transform-origin: top center;
+        margin-bottom: -40%; /* Compensate for scaled height */
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ========================================================
+       RESUME LaTeX STYLES (EXACT OVERLEAF REPLICA)
+       ======================================================== */
+    @font-face {
+        font-family: 'Computer Modern Serif';
+        src: url('https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/fonts/Serif/cmunrm.woff') format('woff');
+        font-weight: normal; font-style: normal;
+    }
+    @font-face {
+        font-family: 'Computer Modern Serif';
+        src: url('https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/fonts/Serif/cmunbx.woff') format('woff');
+        font-weight: bold; font-style: normal;
+    }
+    @font-face {
+        font-family: 'Computer Modern Serif';
+        src: url('https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/fonts/Serif/cmunti.woff') format('woff');
+        font-weight: normal; font-style: italic;
+    }
+
+    #resume-canvas { display: none; }
+
+    .resume-page {
+        width: 210mm;
+        min-height: 297mm;
+        padding: 30px 25px; /* 1cm top/bottom, ~0.8cm sides */
+        background: white;
+        color: black;
+        font-family: 'Computer Modern Serif', serif;
+        font-size: 11pt;
+        line-height: 1.15;
+        box-sizing: border-box;
+        text-align: left;
+    }
+
+    /* Top Header Area */
+    .resume-page h1 { 
+        font-size: 26pt; 
+        font-weight: bold; 
+        text-align: center; 
+        margin-bottom: 2px; 
+        text-transform: uppercase; 
+        letter-spacing: 1px;
+    }
+    
+    .resume-page .contact-info { 
+        text-align: center; 
+        font-size: 10.5pt; 
+        margin-bottom: 2px; 
+    }
+    
+    .resume-page a { 
+        color: black; 
+        text-decoration: none; 
+    }
+    
+    /* Section Headings */
+    .resume-page h2 {
+        font-size: 12.5pt;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-top: 14px;
+        margin-bottom: 4px;
+        border-bottom: 1px solid black;
+        padding-bottom: 2px;
+        font-variant: small-caps;
+        letter-spacing: 0.5px;
+    }
+
+    /* Layout Helpers */
+    .flex-between { display: flex; justify-content: space-between; align-items: baseline; width: 100%; }
+    .resume-item { margin-top: 8px; margin-bottom: 8px; }
+    
+    /* Typography Helpers */
+    .r-bold { font-weight: bold; }
+    .r-italic { font-style: italic; }
+    .r-small { font-size: 10.5pt; }
+    
+    /* Lists */
+    .resume-page ul { 
+        list-style-type: none; 
+        padding-left: 15px; 
+        margin-top: 3px; 
+        margin-bottom: 0;
+    }
+    .resume-page ul li { 
+        position: relative; 
+        margin-bottom: 3px; 
+        text-align: justify;
+    }
+    .resume-page ul li::before { 
+        content: '◦'; /* Exact LaTeX itemize character */
+        position: absolute; 
+        left: -12px; 
+    }
+
+    /* Icons */
+    .globe-icon { 
+        font-family: "Font Awesome 6 Free"; 
+        font-weight: 900; 
+        content: "\f0ac"; 
+        font-size: 9pt; 
+        margin-left: 4px; 
+        color: #000;
+    }
+</style>
+</head>
+<body class="flex flex-col h-screen">
+
+    <header class="h-16 flex-shrink-0 border-b-[3px] border-black dark:border-neo-pink bg-white dark:bg-neo-darker flex justify-between items-center px-8 z-20 shadow-sm relative">
+        <div class="font-heading font-black text-2xl tracking-tighter text-neo-purple dark:text-neo-pink">
+            RESUME<span class="text-black dark:text-white">PRO</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <button onclick="jumpToPreview()" class="neo-btn btn-success hidden md:flex text-sm py-2">
+                <i class="fas fa-magic"></i> Quick Render
+            </button>
+            <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-xl" title="Toggle Theme">
+                <i class="fas fa-moon dark:text-white"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-grow flex justify-center items-center p-4 md:p-8 relative w-full h-full overflow-hidden">
+        
+        <div class="wizard-card w-full max-w-5xl h-full flex flex-col relative">
+            
+            <div class="h-2 w-full bg-gray-200 dark:bg-slate-700 flex-shrink-0">
+                <div id="progressBar" class="h-full bg-neo-purple dark:bg-neo-pink transition-all duration-300 w-[14%]"></div>
+            </div>
+
+            <div class="wizard-content" id="formScrollArea">
+                
+                <div id="step1" class="step-container active">
+                    <div class="mb-8">
+                        <h2 class="font-heading text-3xl font-black mb-2 dark:text-white">1. Core Identity</h2>
+                        <p class="text-black-500 dark:text-black-400">Let's start with the basics. How can recruiters reach you?</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="neo-label">First Name *</label>
+                            <input type="text" id="fName" class="neo-input" placeholder="Mayur" required>
+                        </div>
+                        <div>
+                            <label class="neo-label">Last Name *</label>
+                            <input type="text" id="lName" class="neo-input" placeholder="Borgude" required>
+                        </div>
+                        <div>
+                            <label class="neo-label">Phone Number</label>
+                            <input type="tel" id="phone" class="neo-input" placeholder="+91-9421XXXXXX">
+                        </div>
+                        <div>
+                            <label class="neo-label">Email Address *</label>
+                            <input type="email" id="email" class="neo-input" placeholder="mayborg121@gmail.com" required>
+                        </div>
+                        <div>
+                            <label class="neo-label">Primary Link (GitHub/LinkedIn)</label>
+                            <input type="text" id="mainLink" class="neo-input" placeholder="github.com/mayborg121">
+                        </div>
+                        <div>
+                            <label class="neo-label">Location (City, State)</label>
+                            <input type="text" id="cityState" class="neo-input" placeholder="Nashik, Maharashtra">
+                        </div>
+                        <div>
+                            <label class="neo-label">Pincode / Country</label>
+                            <input type="text" id="pincode" class="neo-input" placeholder="422303, India">
+                        </div>
+                        <div>
+                            <label class="neo-label">Extra Links (Comma Separated)</label>
+                            <input type="text" id="otherLinks" class="neo-input" placeholder="LinkedIn: link, Portfolio: link" title="Format -> Name: URL, Name: URL">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="step2" class="step-container">
+                    <div class="mb-8">
+                        <h2 class="font-heading text-3xl font-black mb-2 dark:text-white">2. Professional Objective</h2>
+                        <p class="text-black-500 dark:text-black-400">A brief, powerful statement about your career goals. Keep it under 50 words.</p>
+                    </div>
+                    
+                    <div>
+                        <label class="neo-label flex justify-between">
+                            <span>Statement</span>
+                            <span id="wordCount" class="text-xs font-normal text-gray-500">0/50 words</span>
+                        </label>
+                        <textarea id="objective" class="neo-input h-40 resize-y" oninput="checkWordCount(this, 50)" placeholder="Seeking a challenging position to leverage my expertise in web development, data analysis..."></textarea>
+                    </div>
+                </div>
+
+                <div id="step3" class="step-container">
+                    <div class="flex justify-between items-end mb-8">
+                        <div>
+                            <h2 class="font-heading text-3xl font-black mb-2 dark:text-white">3. Experience</h2>
+                            <p class="text-black-500 dark:text-black-400">Add your work history. Start with the most recent.</p>
+                        </div>
+                        <button onclick="addExperience()" class="neo-btn btn-primary text-sm"><i class="fas fa-plus"></i> Add Job</button>
+                    </div>
+                    
+                    <div id="experienceList" class="flex flex-col gap-4"></div>
+                </div>
+
+                <div id="step4" class="step-container">
+                    <div class="flex justify-between items-end mb-8">
+                        <div>
+                            <h2 class="font-heading text-3xl font-black mb-2 dark:text-white">4. Education</h2>
+                            <p class="text-black-500 dark:text-black-400">Academic history. The system will auto-calculate Distinction classes.</p>
+                        </div>
+                        <button onclick="addEducation()" class="neo-btn btn-primary text-sm"><i class="fas fa-plus"></i> Add Degree</button>
+                    </div>
+                    
+                    <div id="educationList" class="flex flex-col gap-4"></div>
+                </div>
+
+                <div id="step5" class="step-container">
+                    <div class="flex justify-between items-end mb-8">
+                        <div>
+                            <h2 class="font-heading text-3xl font-black mb-2 dark:text-white">5. Technical Projects</h2>
+                            <p class="text-black-500 dark:text-black-400">Showcase your best builds.</p>
+                        </div>
+                        <button onclick="addProject()" class="neo-btn btn-primary text-sm"><i class="fas fa-plus"></i> Add Project</button>
+                    </div>
+                    
+                    <div id="projectList" class="flex flex-col gap-4"></div>
+                </div>
+
+                <div id="step6" class="step-container">
+                    <div class="mb-8">
+                        <h2 class="font-heading text-3xl font-black mb-2 dark:text-white">6. Skill Stack</h2>
+                        <p class="text-black-500 dark:text-black-400">Separate skills with commas for clean formatting.</p>
+                    </div>
+                    
+                    <div class="flex flex-col gap-6">
+                        <div>
+                            <label class="neo-label">Technical Skills</label>
+                            <textarea id="techSkills" class="neo-input h-24" placeholder="C/C++, Python, ReactJS, SQL, Tailwind CSS..."></textarea>
+                        </div>
+                        <div>
+                            <label class="neo-label">Personal / Soft Skills</label>
+                            <textarea id="personalSkills" class="neo-input h-24" placeholder="Problem Solving, Design Thinking, Team Work..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="step7" class="step-container">
+                    <div class="flex justify-between items-end mb-8">
+                        <div>
+                            <h2 class="font-heading text-3xl font-black mb-2 dark:text-white">7. Certifications</h2>
+                            <p class="text-black-500 dark:text-black-400">Extra courses and achievements.</p>
+                        </div>
+                        <button onclick="addCertification()" class="neo-btn btn-primary text-sm"><i class="fas fa-plus"></i> Add Cert</button>
+                    </div>
+                    
+                    <div id="certList" class="flex flex-col gap-4"></div>
+                </div>
+
+                <div id="step8" class="step-container">
+                    <div class="text-center mb-6">
+                        <h2 class="font-heading text-4xl font-black mb-2 text-black-500 dark:text-black-500">Resume Generated!</h2>
+                        <p class="text-black-500 dark:text-black-400">Preview.</p>
+                    </div>
+                    
+                    <div id="preview-wrapper">
+                        <div id="visual-preview-container" class="resume-scaler bg-white"></div>
+                    </div>
+
+                    <div class="mt-8 flex flex-col items-center gap-4">
+                        <button onclick="executePDFDownload()" class="neo-btn btn-success text-lg px-8 py-4 w-full md:w-auto shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:scale-105 transition-transform">
+                            <i class="fas fa-file-pdf mr-2"></i> Download PDF
+                        </button>
+                        <p class="text-xs text-black-500"><i class="fas fa-info-circle"></i> Best printed on A4 paper settings.</p>
+                    </div>
+                </div>
+
+            </div> <div class="wizard-footer" id="wizardFooter">
+                <button id="btnPrev" onclick="changeStep(-1)" class="neo-btn btn-secondary invisible"><i class="fas fa-arrow-left"></i> Back</button>
+                
+                <button id="btnNext" onclick="changeStep(1)" class="neo-btn btn-primary">Next Step <i class="fas fa-arrow-right"></i></button>
+                <button id="btnCreate" onclick="generatePreview()" class="neo-btn btn-success hidden"><i class="fas fa-cogs"></i> Generate Resume</button>
+                <button id="btnEdit" onclick="editResume()" class="neo-btn btn-secondary hidden"><i class="fas fa-pencil-alt"></i> Edit Details</button>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="h-10 border-t-[3px] border-black dark:border-neo-pink bg-white dark:bg-neo-darker flex justify-center items-center shrink-0 z-20 relative">
+        <p class="font-heading text-xs font-bold tracking-widest text-gray-500 dark:text-gray-400">
+            MADE WITH <span class="text-neo-pink animate-pulse">❤️</span> BY MAYBORG
+        </p>
+    </footer>
+
+    <div id="resume-canvas">
+        <div id="resume-output" class="resume-page">
+            </div>
+    </div>
+
+    <script>
+        // --- Core State Management ---
+        const State = {
+            currentStep: 1,
+            totalSteps: 8, // Increased to 8 for Preview
+            counters: { exp: 0, edu: 0, proj: 0, cert: 0 }
+        };
+
+        // --- Theme Management ---
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        // --- Utility Functions ---
+        function scrollToTop() {
+            document.getElementById('formScrollArea').scrollTop = 0;
+        }
+
+        function checkWordCount(textarea, maxWords) {
+            let words = textarea.value.trim().split(/\s+/).filter(w => w.length > 0);
+            const counter = document.getElementById('wordCount');
+            
+            if (words.length > maxWords) {
+                textarea.value = words.slice(0, maxWords).join(" ");
+                counter.innerText = `${maxWords}/${maxWords} words (Max Reached)`;
+                counter.classList.add('text-red-500', 'font-bold');
+            } else {
+                counter.innerText = `${words.length}/${maxWords} words`;
+                counter.classList.remove('text-red-500', 'font-bold');
+            }
+        }
+
+        // --- Navigation Logic ---
+        function updateUI() {
+            // Update Progress Bar
+            const progress = ((State.currentStep - 1) / (State.totalSteps - 1)) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+
+            // Manage View Visibility
+            for(let i=1; i<=State.totalSteps; i++) {
+                const el = document.getElementById(`step${i}`);
+                if(el) el.classList.remove('active');
+            }
+            document.getElementById(`step${State.currentStep}`).classList.add('active');
+            scrollToTop();
+
+            // Manage Button States
+            const btnPrev = document.getElementById('btnPrev');
+            const btnNext = document.getElementById('btnNext');
+            const btnCreate = document.getElementById('btnCreate');
+            const btnEdit = document.getElementById('btnEdit');
+
+            // Reset defaults
+            btnPrev.classList.remove('invisible');
+            btnNext.classList.add('hidden');
+            btnCreate.classList.add('hidden');
+            btnEdit.classList.add('hidden');
+
+            if (State.currentStep === 1) {
+                btnPrev.classList.add('invisible');
+                btnNext.classList.remove('hidden');
+            } else if (State.currentStep < 7) {
+                btnNext.classList.remove('hidden');
+            } else if (State.currentStep === 7) {
+                btnCreate.classList.remove('hidden');
+            } else if (State.currentStep === 8) {
+                // Preview Mode
+                btnEdit.classList.remove('hidden');
+            }
+        }
+
+        function changeStep(direction) {
+            State.currentStep += direction;
+            if (State.currentStep < 1) State.currentStep = 1;
+            if (State.currentStep > State.totalSteps) State.currentStep = State.totalSteps;
+            updateUI();
+        }
+
+        function jumpToPreview() {
+            generatePreview();
+            State.currentStep = 8;
+            updateUI();
+        }
+
+        function editResume() {
+            State.currentStep = 1;
+            updateUI();
+        }
+
+        // --- Dynamic Form Generators ---
+        function createItemWrapper(id) {
+            const div = document.createElement('div');
+            div.className = "item-card";
+            div.id = id;
+            return div;
+        }
+
+        function addExperience() {
+            State.counters.exp++;
+            const wrapper = createItemWrapper(`exp-${State.counters.exp}`);
+            wrapper.innerHTML = `
+                <button onclick="this.parentElement.remove()" class="remove-btn" title="Remove"><i class="fas fa-trash"></i></button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-2">
+                    <div><label class="neo-label">Company Name</label><input type="text" class="neo-input exp-company" placeholder="e.g. TECHNOKRAFT"></div>
+                    <div><label class="neo-label">Job Title</label><input type="text" class="neo-input exp-title" placeholder="e.g. DATA ANALYST INTERN"></div>
+                    <div><label class="neo-label">Duration</label><input type="text" class="neo-input exp-date" placeholder="Oct 2023 - Mar 2024"></div>
+                    <div><label class="neo-label">Location</label><input type="text" class="neo-input exp-loc" placeholder="Nashik, India"></div>
+                </div>
+                <div class="space-y-3">
+                    <label class="neo-label">Key Responsibilities / Achievements</label>
+                    <input type="text" class="neo-input exp-p1" placeholder="Point 1: Developed an automated reporting dashboard...">
+                    <input type="text" class="neo-input exp-p2" placeholder="Point 2: Implemented Python-based scripts...">
+                    <input type="text" class="neo-input exp-p3" placeholder="Point 3: Conducted analysis on behavior...">
+                </div>
+            `;
+            document.getElementById('experienceList').appendChild(wrapper);
+        }
+
+        function addEducation() {
+            State.counters.edu++;
+            const wrapper = createItemWrapper(`edu-${State.counters.edu}`);
+            wrapper.innerHTML = `
+                <button onclick="this.parentElement.remove()" class="remove-btn"><i class="fas fa-trash"></i></button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-2">
+                    <div class="md:col-span-2"><label class="neo-label">Institution Name</label><input type="text" class="neo-input edu-college" placeholder="e.g. MET BHUJBAL KNOWLEDGE CITY"></div>
+                    <div><label class="neo-label">Degree / Certificate</label><input type="text" class="neo-input edu-degree" placeholder="e.g. B.Tech - Computer Science"></div>
+                    <div><label class="neo-label">Duration</label><input type="text" class="neo-input edu-date" placeholder="Jan 2021 - Mar 2025"></div>
+                    <div><label class="neo-label">Location</label><input type="text" class="neo-input edu-loc" placeholder="Nashik, India"></div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="neo-label">Score</label>
+                            <input type="number" step="0.01" class="neo-input edu-marks" placeholder="77.00">
+                        </div>
+                        <div>
+                            <label class="neo-label">Type</label>
+                            <select class="neo-input edu-type">
+                                <option value="percentage">%</option>
+                                <option value="gpa">GPA</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('educationList').appendChild(wrapper);
+        }
+
+        function addProject() {
+            State.counters.proj++;
+            const wrapper = createItemWrapper(`proj-${State.counters.proj}`);
+            wrapper.innerHTML = `
+                <button onclick="this.parentElement.remove()" class="remove-btn"><i class="fas fa-trash"></i></button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-2">
+                    <div><label class="neo-label">Project Title</label><input type="text" class="neo-input proj-name" placeholder="Smart-Home Automation"></div>
+                    <div><label class="neo-label">Date / Duration</label><input type="text" class="neo-input proj-date" placeholder="Aug 2024 - Nov 2024"></div>
+                    <div><label class="neo-label">Live Link / Repo URL</label><input type="text" class="neo-input proj-link" placeholder="https://github.com/..."></div>
+                    <div class="md:col-span-2"><label class="neo-label">Technologies Used</label><input type="text" class="neo-input proj-tools" placeholder="Platformio, ESP32, MQTT..."></div>
+                </div>
+                <div class="space-y-3">
+                    <label class="neo-label">Project Details</label>
+                    <input type="text" class="neo-input proj-p1" placeholder="Point 1: Developed Application for controlling...">
+                    <input type="text" class="neo-input proj-p2" placeholder="Point 2: Implemented Websockets & Hardware Integrations...">
+                </div>
+            `;
+            document.getElementById('projectList').appendChild(wrapper);
+        }
+
+        function addCertification() {
+            State.counters.cert++;
+            const wrapper = document.createElement('div');
+            wrapper.className = "flex flex-wrap md:flex-nowrap gap-4 items-center mb-4";
+            wrapper.innerHTML = `
+                <input type="text" class="neo-input cert-name flex-grow" placeholder="Course Name (e.g. Data Analytics)">
+                <input type="text" class="neo-input cert-link w-full md:w-1/4" placeholder="URL (Optional)">
+                <input type="text" class="neo-input cert-date w-full md:w-1/4" placeholder="Date (Mar 2024)">
+                <button onclick="this.parentElement.remove()" class="neo-btn btn-danger p-3"><i class="fas fa-trash"></i></button>
+            `;
+            document.getElementById('certList').appendChild(wrapper);
+        }
+
+        // --- Data Extraction & Compilation ---
+        function generatePreview() {
+            // Target output container
+            const out = document.getElementById('resume-output');
+            
+            // 1. Core Identity
+            const fName = document.getElementById('fName').value.trim() || "MAYUR";
+            const lName = document.getElementById('lName').value.trim() || "BORGUDE";
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const mainLink = document.getElementById('mainLink').value.trim();
+            
+            const cityState = document.getElementById('cityState').value.trim();
+            const pincode = document.getElementById('pincode').value.trim();
+            const locStr = [cityState, pincode].filter(Boolean).join(" - ");
+
+            // Build primary contact line
+            let contactParts = [phone, email, mainLink].filter(Boolean);
+            let contactHtml = contactParts.join(' | ');
+
+            // Build secondary links
+            const otherLinksStr = document.getElementById('otherLinks').value.trim();
+            let otherLinksHtml = "";
+            if (otherLinksStr) {
+                const arr = otherLinksStr.split(',');
+                let formattedLinks = arr.map(l => {
+                    let parts = l.split(':');
+                    if(parts.length > 1) {
+                        let icon = parts[0].trim().toLowerCase();
+                        // Mapping basic names to fa icons
+                        let iconClass = "fas fa-link";
+                        if(icon.includes('linkedin')) iconClass = "fab fa-linkedin";
+                        if(icon.includes('github')) iconClass = "fab fa-github";
+                        if(icon.includes('portfolio')) iconClass = "fas fa-briefcase";
+                        
+                        return `<i class="${iconClass}"></i> <a href="${parts[1].trim()}" target="_blank">${parts[0].trim()}</a>`;
+                    }
+                    return `<a href="${l.trim()}">${l.trim()}</a>`;
+                }).join(' | ');
+                otherLinksHtml = `<div class="contact-info contact-links" style="margin-top: 2px;">${formattedLinks}</div>`;
+            }
+
+            // 2. Objective
+            const obj = document.getElementById('objective').value.trim();
+
+            // 3. Experience Extraction
+            const exps = Array.from(document.getElementById('experienceList').children).map(el => {
+                return {
+                    company: el.querySelector('.exp-company').value.trim(),
+                    title: el.querySelector('.exp-title').value.trim(),
+                    date: el.querySelector('.exp-date').value.trim(),
+                    loc: el.querySelector('.exp-loc').value.trim(),
+                    points: [
+                        el.querySelector('.exp-p1').value.trim(),
+                        el.querySelector('.exp-p2').value.trim(),
+                        el.querySelector('.exp-p3').value.trim()
+                    ].filter(Boolean)
+                };
+            }).filter(e => e.company);
+
+            // 4. Education Extraction & Smart Grading
+            let edus = Array.from(document.getElementById('educationList').children).map(el => {
+                let marks = parseFloat(el.querySelector('.edu-marks').value || 0);
+                let type = el.querySelector('.edu-type').value;
+                let gradeText = "";
+                
+                if(marks > 0) {
+                    if (type === 'percentage') {
+                        if (marks >= 75) gradeText = `Grade: ${marks.toFixed(2)}% - First Class Distinction`;
+                        else if (marks >= 60) gradeText = `Grade: ${marks.toFixed(2)}% - First Class`;
+                        else gradeText = `Grade: ${marks.toFixed(2)}%`;
+                    } else {
+                        if (marks >= 7.5) gradeText = `GPA: ${marks.toFixed(2)}/10.00 - First Class Distinction`;
+                        else if (marks >= 6.0) gradeText = `GPA: ${marks.toFixed(2)}/10.00 - First Class`;
+                        else gradeText = `GPA: ${marks.toFixed(2)}/10.00`;
+                    }
+                }
+
+                // Sorting logic
+                let dateStr = el.querySelector('.edu-date').value.trim();
+                let yearMatch = dateStr.match(/\d{4}/g);
+                let sortYear = yearMatch ? parseInt(yearMatch[yearMatch.length-1]) : 0;
+
+                return {
+                    college: el.querySelector('.edu-college').value.trim(),
+                    degree: el.querySelector('.edu-degree').value.trim(),
+                    date: dateStr,
+                    loc: el.querySelector('.edu-loc').value.trim(),
+                    grade: gradeText,
+                    sortYear: sortYear
+                };
+            }).filter(e => e.college);
+            edus.sort((a, b) => b.sortYear - a.sortYear);
+
+            // 5. Projects
+            const projs = Array.from(document.getElementById('projectList').children).map(el => {
+                return {
+                    name: el.querySelector('.proj-name').value.trim(),
+                    link: el.querySelector('.proj-link').value.trim(),
+                    tools: el.querySelector('.proj-tools').value.trim(),
+                    date: el.querySelector('.proj-date').value.trim(),
+                    points: [
+                        el.querySelector('.proj-p1').value.trim(),
+                        el.querySelector('.proj-p2').value.trim()
+                    ].filter(Boolean)
+                };
+            }).filter(p => p.name);
+
+            // 6. Skills
+            const tech = document.getElementById('techSkills').value.trim();
+            const pers = document.getElementById('personalSkills').value.trim();
+
+            // 7. Certs
+            const certs = Array.from(document.getElementById('certList').children).map(el => {
+                return {
+                    name: el.querySelector('.cert-name').value.trim(),
+                    link: el.querySelector('.cert-link').value.trim(),
+                    date: el.querySelector('.cert-date').value.trim()
+                };
+            }).filter(c => c.name);
+
+            // --- BUILD FINAL HTML STRING (LaTeX Emulation) ---
+            let html = `
+                <h1>${fName} ${lName}</h1>
+                <div class="contact-info">${contactHtml}</div>
+                ${otherLinksHtml}
+            `;
+            
+            if(locStr) {
+                html += `<div class="contact-info" style="margin-top:2px;">${locStr}</div>`;
+            }
+
+            if(obj) {
+                html += `
+                    <h2>Objective</h2>
+                    <p style="text-align: justify; font-size: 10.5pt; margin-top: 4px;">${obj}</p>
+                `;
+            }
+
+            if(exps.length > 0) {
+                html += `<h2>Experience</h2>`;
+                exps.forEach(e => {
+                    html += `
+                    <div class="resume-item">
+                        <div class="flex-between">
+                            <span class="r-bold">• ${e.company.toUpperCase()} ${e.link ? `<a href="${e.link}" target="_blank" class="globe-icon"><i class="fas fa-globe"></i></a>` : ''}</span>
+                            <span class="r-italic r-small">${e.date}</span>
+                        </div>
+                        <div class="flex-between" style="margin-top:-1px;">
+                            <span class="r-italic r-small" style="padding-left: 10px;">${e.title.toUpperCase()}</span>
+                            <span class="r-small">${e.loc}</span>
+                        </div>
+                        <ul>
+                            ${e.points.map(p => `<li>${p}</li>`).join('')}
+                        </ul>
+                    </div>`;
+                });
+            }
+
+            if(edus.length > 0) {
+                html += `<h2>Education</h2>`;
+                edus.forEach(e => {
+                    html += `
+                    <div class="resume-item">
+                        <div class="flex-between">
+                            <span class="r-bold">• ${e.college.toUpperCase()}</span>
+                            <span class="r-italic r-small">${e.date}</span>
+                        </div>
+                        <div class="flex-between" style="margin-top:-1px;">
+                            <span class="r-italic r-small" style="padding-left: 10px;">${e.degree}</span>
+                            <span class="r-small">${e.loc}</span>
+                        </div>
+                        ${e.grade ? `<div style="padding-left: 10px; font-size: 10.5pt; margin-top: 1px;">◦ ${e.grade}</div>` : ''}
+                    </div>`;
+                });
+            }
+
+            if(projs.length > 0) {
+                html += `<h2>Projects</h2>`;
+                projs.forEach(p => {
+                    let linkHtml = p.link ? `<a href="${p.link}" target="_blank" class="globe-icon"><i class="fas fa-globe"></i></a>` : '';
+                    html += `
+                    <div class="resume-item">
+                        <div class="flex-between">
+                            <span><span class="r-bold">• ${p.name}</span> ${linkHtml}</span>
+                            <span class="r-italic r-small">${p.date}</span>
+                        </div>
+                        ${p.tools ? `<div class="r-italic r-small" style="padding-left: 10px; margin-top:-1px;">Tools: ${p.tools}</div>` : ''}
+                        <ul>
+                            ${p.points.map(pt => `<li>${pt}</li>`).join('')}
+                        </ul>
+                    </div>`;
+                });
+            }
+
+            if(tech || pers) {
+                html += `<h2>Skills</h2><ul style="padding-left: 10px; margin-top: 4px;">`;
+                if(tech) html += `<li><span class="r-bold">Technical Skills:</span> ${tech}</li>`;
+                if(pers) html += `<li><span class="r-bold">Personal Skills:</span> ${pers}</li>`;
+                html += `</ul>`;
+            }
+
+            if(certs.length > 0) {
+                html += `<h2>Certifications</h2><div style="padding-left: 10px; margin-top: 4px;">`;
+                certs.forEach(c => {
+                    let linkHtml = c.link ? `<a href="${c.link}" target="_blank" style="text-decoration:none; color:black; font-weight:bold;">${c.name}</a>` : `<span style="font-weight:bold;">${c.name}</span>`;
+                    html += `
+                    <div class="flex-between" style="margin-bottom: 3px;">
+                        <span>• ${linkHtml}</span>
+                        <span class="r-italic r-small">${c.date}</span>
+                    </div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Inject into hidden builder
+            out.innerHTML = html;
+
+            // Clone to Visual UI Preview Frame
+            const previewContainer = document.getElementById('visual-preview-container');
+            previewContainer.innerHTML = out.outerHTML;
+
+            // Transition to Step 8
+            State.currentStep = 8;
+            updateUI();
+        }
+
+        // --- PDF Engine ---
+        function executePDFDownload() {
+            const element = document.getElementById('resume-output');
+            
+            // Un-hide canvas momentarily to allow html2canvas to read actual dimensions
+            const canvasContainer = document.getElementById('resume-canvas');
+            canvasContainer.style.display = 'block';
+            
+            // Naming convention
+            const fName = document.getElementById('fName').value.trim() || "Resume";
+            const lName = document.getElementById('lName').value.trim() || "";
+            const fileName = `${fName}_${lName}_Resume.pdf`.replace(/\s+/g, '_');
+
+            // High-Definition render settings
+            const opt = {
+                margin:       0, // Margins are baked into the CSS padding
+                filename:     fileName,
+                image:        { type: 'jpeg', quality: 1.0 },
+                html2canvas:  { 
+                    scale: 4, // 4x scale for extreme HD clarity
+                    useCORS: true, 
+                    letterRendering: true,
+                    scrollY: 0
+                }, 
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Loading state on button
+            const btn = document.querySelector('.btn-success');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing HD Render...';
+            btn.disabled = true;
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Re-hide canvas and reset button
+                canvasContainer.style.display = 'none';
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }).catch(err => {
+                console.error("PDF Generation Error: ", err);
+                alert("An error occurred while generating the PDF. Please try again.");
+                canvasContainer.style.display = 'none';
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }
+
+        // --- Initialization ---
+        window.onload = () => {
+            // Seed initial blank fields
+            addExperience();
+            addEducation();
+            addProject();
+            addCertification();
+            updateUI();
+        };
+    </script>
+</body>
+</html>
